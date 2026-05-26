@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>ChatFlow</title>
+
+  <link rel="stylesheet" href="style.css"/>
+
+</head>
+
+<body>
+
+  <div class="bg-grid"></div>
+
+  <div class="background-blur blur1"></div>
+  <div class="background-blur blur2"></div>
+  <div class="background-blur blur3"></div>
+
+  <!-- JOIN SCREEN -->
+
+  <div class="join-screen" id="join-screen">
+
+    <div class="join-card">
+
+      <div class="join-logo"></div>
+
+      <h1>CHATFLOW</h1>
+
+      <p>Realtime Neural Interface</p>
+
+      <input
+        type="text"
+        id="username-input"
+        placeholder="Enter your identity..."
+      />
+
+      <button id="join-btn">
+        Enter Chat
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- CHAT APP -->
+
+  <div class="chat-container" id="chat-container">
+
+    <div class="chat-header">
+
+      <div class="logo-section">
+
+        <div class="logo-box"></div>
+
+        <div>
+
+          <h1>CHATFLOW</h1>
+
+          <p>Realtime Neural Interface</p>
+
+        </div>
+
+      </div>
+
+      <div class="online-box">
+
+        <span class="online-dot"></span>
+
+        <span id="online-count">0 Online</span>
+
+      </div>
+
+    </div>
+
+    <div id="messages" class="messages"></div>
+
+    <form id="chat-form" class="chat-input-area">
+
+      <input
+        type="text"
+        id="message-input"
+        placeholder="Transmit message..."
+        autocomplete="off"
+      />
+
+      <button type="submit">Send</button>
+
+    </form>
+
+  </div>
+
+  <script src="http://localhost:5000/socket.io/socket.io.js"></script>
+
+  <script src="script.js"></script>
+
+</body>
+
+</html>
