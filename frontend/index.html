@@ -23,11 +23,11 @@
 
   <!-- JOIN SCREEN -->
 
-  <div class="join-screen" id="join-screen">
+  <div id="username-modal" class="username-modal">
 
-    <div class="join-card">
+    <div class="username-box">
 
-      <div class="join-logo"></div>
+      <div class="logo"></div>
 
       <h1>CHATFLOW</h1>
 
@@ -36,7 +36,7 @@
       <input
         type="text"
         id="username-input"
-        placeholder="Enter your identity..."
+        placeholder="Choose your identity..."
       />
 
       <button id="join-btn">
@@ -49,7 +49,7 @@
 
   <!-- CHAT APP -->
 
-  <div class="chat-container" id="chat-container">
+  <div class="chat-container">
 
     <div class="chat-header">
 
@@ -71,15 +71,15 @@
 
         <span class="online-dot"></span>
 
-        <span id="online-count">0 Online</span>
+        <span id="online-users">0 Online</span>
 
       </div>
 
     </div>
 
-    <div id="messages" class="messages"></div>
+    <div id="message-container" class="messages"></div>
 
-    <form id="chat-form" class="chat-input-area">
+    <div class="chat-input-area">
 
       <input
         type="text"
@@ -88,13 +88,15 @@
         autocomplete="off"
       />
 
-      <button type="submit">Send</button>
+      <button id="send-btn">
+        Send
+      </button>
 
-    </form>
+    </div>
 
   </div>
 
-  <script src="http://localhost:5000/socket.io/socket.io.js"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
   <script src="script.js"></script>
 
