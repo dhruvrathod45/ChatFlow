@@ -5,11 +5,11 @@
 
   <meta charset="UTF-8" />
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>ChatFlow</title>
 
-  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="style.css" />
 
 </head>
 
@@ -17,43 +17,15 @@
 
   <div class="bg-grid"></div>
 
-  <div class="background-blur blur1"></div>
-  <div class="background-blur blur2"></div>
-  <div class="background-blur blur3"></div>
-
-  <!-- JOIN SCREEN -->
-
-  <div id="username-modal" class="username-modal">
-
-    <div class="username-box">
-
-      <div class="logo"></div>
-
-      <h1>CHATFLOW</h1>
-
-      <p>Realtime Neural Interface</p>
-
-      <input
-        type="text"
-        id="username-input"
-        placeholder="Choose your identity..."
-      />
-
-      <button id="join-btn">
-        Enter Chat
-      </button>
-
-    </div>
-
-  </div>
-
-  <!-- CHAT APP -->
+  <div class="blur blur1"></div>
+  <div class="blur blur2"></div>
+  <div class="blur blur3"></div>
 
   <div class="chat-container">
 
     <div class="chat-header">
 
-      <div class="logo-section">
+      <div class="header-left">
 
         <div class="logo-box"></div>
 
@@ -69,23 +41,22 @@
 
       <div class="online-box">
 
-        <span class="online-dot"></span>
+        <div class="online-dot"></div>
 
-        <span id="online-users">0 Online</span>
+        <span id="online-count">0 Online</span>
 
       </div>
 
     </div>
 
-    <div id="message-container" class="messages"></div>
+    <div id="message-container" class="message-container"></div>
 
-    <div class="chat-input-area">
+    <div class="chat-input-container">
 
       <input
         type="text"
         id="message-input"
-        placeholder="Transmit message..."
-        autocomplete="off"
+        placeholder="Transmit your thoughts..."
       />
 
       <button id="send-btn">
