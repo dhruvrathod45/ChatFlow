@@ -1,4 +1,6 @@
-const socket = io("https://chatflow-backend-1.onrender.com");
+const socket = io("https://chat-flow-lyart.vercel.app/", {
+  transports: ["websocket", "polling"]
+});
 
 const messageContainer =
 document.getElementById("message-container");
@@ -23,7 +25,7 @@ overlay.style.top = "0";
 overlay.style.left = "0";
 overlay.style.width = "100%";
 overlay.style.height = "100%";
-overlay.style.background = "rgba(0,0,0,0.72)";
+overlay.style.background = "rgba(0,0,0,0.7)";
 overlay.style.backdropFilter = "blur(18px)";
 overlay.style.display = "flex";
 overlay.style.justifyContent = "center";
@@ -33,44 +35,44 @@ overlay.style.zIndex = "9999";
 overlay.innerHTML = `
 
 <div style="
-width:430px;
+width:420px;
 padding:40px;
-border-radius:35px;
-background:rgba(10,10,20,0.75);
+border-radius:30px;
+background:rgba(15,15,20,0.75);
 border:1px solid rgba(255,255,255,0.08);
 box-shadow:
-0 0 60px rgba(0,255,200,0.12),
-0 0 100px rgba(255,0,120,0.1);
+0 0 50px rgba(0,255,200,0.12),
+0 0 100px rgba(255,0,150,0.08);
 ">
 
 <h1 style="
-font-size:46px;
-letter-spacing:4px;
-margin-bottom:12px;
+font-size:42px;
 text-align:center;
+margin-bottom:12px;
+letter-spacing:4px;
 ">
 CHATFLOW
 </h1>
 
 <p style="
-opacity:0.7;
 text-align:center;
-margin-bottom:35px;
+opacity:0.7;
+margin-bottom:30px;
 ">
-Enter your neural identity
+Enter your identity
 </p>
 
 <input
 id="username-field"
 type="text"
-placeholder="Choose username..."
+placeholder="Username..."
 style="
 width:100%;
-height:62px;
+height:60px;
 border:none;
 outline:none;
-border-radius:20px;
-padding:0 22px;
+border-radius:18px;
+padding:0 20px;
 font-size:18px;
 background:rgba(255,255,255,0.06);
 color:white;
@@ -82,10 +84,10 @@ margin-bottom:22px;
 id="enter-btn"
 style="
 width:100%;
-height:62px;
+height:60px;
 border:none;
-border-radius:20px;
 cursor:pointer;
+border-radius:18px;
 font-size:18px;
 font-weight:bold;
 color:white;
@@ -96,8 +98,6 @@ linear-gradient(
 #7b61ff,
 #ff00c8
 );
-box-shadow:
-0 0 35px rgba(123,97,255,0.35);
 "
 >
 Enter Chat
@@ -114,7 +114,7 @@ document.getElementById("username-field");
 const enterBtn =
 document.getElementById("enter-btn");
 
-/* ENTER CHAT */
+/* JOIN */
 
 enterBtn.addEventListener("click", () => {
 
@@ -137,7 +137,8 @@ enterBtn.addEventListener("click", () => {
 
 socket.on("online-users", (count) => {
 
-  onlineCount.innerText = `${count} Online`;
+  onlineCount.innerText =
+  `${count} Online`;
 
 });
 
@@ -162,7 +163,7 @@ function sendMessage(){
 
   if(message === "") return;
 
-  const messageData = {
+  const data = {
 
     username,
 
@@ -175,17 +176,23 @@ function sendMessage(){
 
   };
 
-  socket.emit("send-message", messageData);
+  addMessage(data);
+
+  socket.emit("send-message", data);
 
   messageInput.value = "";
 
 }
 
-/* RECEIVE MESSAGE */
+/* RECEIVE */
 
 socket.on("receive-message", (data) => {
 
-  addMessage(data);
+  if(data.username !== username){
+
+    addMessage(data);
+
+  }
 
 });
 
