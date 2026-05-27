@@ -1,4 +1,4 @@
-const socket = io("https://chat-flow-lyart.vercel.app/", {
+const socket = io("https://chatflow-backend-q1i9.onrender.com", {
   transports: ["websocket", "polling"]
 });
 
