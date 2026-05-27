@@ -12,57 +12,88 @@ const Message = require("./models/messageModel");
 
 const app = express();
 
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST"]
-}));
-
-app.use(express.json());
-
-app.use("/api/auth", authRoutes);
-
 const server = http.createServer(app);
 
+/* SOCKET IO */
+
 const io = new Server(server, {
+
   cors: {
     origin: "*",
     methods: ["GET", "POST"]
   }
+
 });
 
+/* MIDDLEWARE */
+
+app.use(cors());
+
+app.use(express.json());
+
+/* ROUTES */
+
+app.use("/api/auth", authRoutes);
+
+/* DATABASE */
+
 mongoose.connect(process.env.MONGO_URI)
+
 .then(() => {
   console.log("MongoDB Connected");
 })
+
 .catch((err) => {
   console.log(err);
 });
 
+/* ONLINE USERS */
+
 let onlineUsers = 0;
 
+/* SOCKET CONNECTION */
+
 io.on("connection", (socket) => {
+
   console.log("User Connected:", socket.id);
 
-  onlineUsers++;
-  io.emit("online-users", onlineUsers);
+  /* JOIN CHAT */
 
   socket.on("join-chat", (username) => {
+
+    onlineUsers++;
+
+    io.emit("online-users", onlineUsers);
+
     io.emit("receive-message", {
+
       username: "System",
+
       message: `${username} joined the chat`,
+
       time: new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit"
       })
+
     });
+
   });
 
+  /* SEND MESSAGE */
+
   socket.on("send-message", async (data) => {
+
     try {
+
       const newMessage = new Message({
+
         username: data.username,
+
         message: data.message,
+
         time: data.time
+
       });
 
       await newMessage.save();
@@ -70,21 +101,37 @@ io.on("connection", (socket) => {
       io.emit("receive-message", data);
 
     } catch (error) {
+
       console.log(error);
+
     }
+
   });
 
+  /* DISCONNECT */
+
   socket.on("disconnect", () => {
-    console.log("User Disconnected");
 
     onlineUsers--;
 
+    if (onlineUsers < 0) {
+      onlineUsers = 0;
+    }
+
     io.emit("online-users", onlineUsers);
+
+    console.log("User Disconnected");
+
   });
+
 });
+
+/* PORT */
 
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
+
   console.log(`Server running on port ${PORT}`);
+
 });
