@@ -1,4 +1,4 @@
-const socket = io("https://chat-flow-lyart.vercel.app/", {
+const socket = io("https://chatflow-backend-1.onrender.com", {
   transports: ["websocket", "polling"]
 });
 
@@ -15,6 +15,15 @@ const onlineCount =
 document.getElementById("online-count");
 
 let username = "";
+
+/* TYPING INDICATOR */
+
+const typingDiv = document.createElement("div");
+
+typingDiv.style.color = "#aaa";
+typingDiv.style.margin = "10px 30px";
+
+document.body.appendChild(typingDiv);
 
 /* JOIN POPUP */
 
@@ -40,9 +49,6 @@ padding:40px;
 border-radius:30px;
 background:rgba(15,15,20,0.75);
 border:1px solid rgba(255,255,255,0.08);
-box-shadow:
-0 0 50px rgba(0,255,200,0.12),
-0 0 100px rgba(255,0,150,0.08);
 ">
 
 <h1 style="
@@ -50,6 +56,7 @@ font-size:42px;
 text-align:center;
 margin-bottom:12px;
 letter-spacing:4px;
+color:white;
 ">
 CHATFLOW
 </h1>
@@ -58,6 +65,7 @@ CHATFLOW
 text-align:center;
 opacity:0.7;
 margin-bottom:30px;
+color:white;
 ">
 Enter your identity
 </p>
@@ -142,7 +150,28 @@ socket.on("online-users", (count) => {
 
 });
 
-/* SEND MESSAGE */
+/* TYPING */
+
+messageInput.addEventListener("input", () => {
+
+  socket.emit("typing", username);
+
+});
+
+socket.on("typing", (user) => {
+
+  typingDiv.innerText =
+  `${user} is typing...`;
+
+  setTimeout(() => {
+
+    typingDiv.innerText = "";
+
+  }, 1000);
+
+});
+
+/* SEND */
 
 sendBtn.addEventListener("click", sendMessage);
 
@@ -176,8 +205,6 @@ function sendMessage(){
 
   };
 
-  addMessage(data);
-
   socket.emit("send-message", data);
 
   messageInput.value = "";
@@ -188,11 +215,7 @@ function sendMessage(){
 
 socket.on("receive-message", (data) => {
 
-  if(data.username !== username){
-
-    addMessage(data);
-
-  }
+  addMessage(data);
 
 });
 

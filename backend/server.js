@@ -12,52 +12,38 @@ const Message = require("./models/messageModel");
 
 const app = express();
 
-const server = http.createServer(app);
-
-/* SOCKET IO */
-
-const io = new Server(server, {
-
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-
-});
-
-/* MIDDLEWARE */
-
-app.use(cors());
+app.use(cors({
+  origin: "*"
+}));
 
 app.use(express.json());
 
-/* ROUTES */
-
 app.use("/api/auth", authRoutes);
 
-/* DATABASE */
-
 mongoose.connect(process.env.MONGO_URI)
-
 .then(() => {
   console.log("MongoDB Connected");
 })
-
 .catch((err) => {
   console.log(err);
 });
 
-/* ONLINE USERS */
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
 
 let onlineUsers = 0;
 
-/* SOCKET CONNECTION */
-
 io.on("connection", (socket) => {
 
-  console.log("User Connected:", socket.id);
+  console.log("User Connected");
 
-  /* JOIN CHAT */
+  /* JOIN */
 
   socket.on("join-chat", (username) => {
 
@@ -80,6 +66,14 @@ io.on("connection", (socket) => {
 
   });
 
+  /* TYPING */
+
+  socket.on("typing", (username) => {
+
+    socket.broadcast.emit("typing", username);
+
+  });
+
   /* SEND MESSAGE */
 
   socket.on("send-message", async (data) => {
@@ -87,13 +81,9 @@ io.on("connection", (socket) => {
     try {
 
       const newMessage = new Message({
-
         username: data.username,
-
         message: data.message,
-
         time: data.time
-
       });
 
       await newMessage.save();
@@ -114,7 +104,7 @@ io.on("connection", (socket) => {
 
     onlineUsers--;
 
-    if (onlineUsers < 0) {
+    if(onlineUsers < 0){
       onlineUsers = 0;
     }
 
@@ -125,8 +115,6 @@ io.on("connection", (socket) => {
   });
 
 });
-
-/* PORT */
 
 const PORT = process.env.PORT || 5000;
 
