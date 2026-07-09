@@ -1,76 +1,230 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
   <meta charset="UTF-8" />
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChatFlow // Realtime Cybernetic Interface</title>
+  
+  <!-- SEO & Social Media Metadata -->
+  <meta name="description" content="ChatFlow is a next-generation, secure, real-time messaging interface built for cybernetic communication." />
+  <meta property="og:title" content="ChatFlow // Realtime Cybernetic Interface" />
+  <meta property="og:description" content="Futuristic real-time chat client styled with high-end glassmorphism and secure JWT authentication." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#0d0d12" />
 
-  <title>ChatFlow</title>
-
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="style.css" />
-
 </head>
-
 <body>
-
-  <div class="bg-grid"></div>
-
-  <div class="blur blur1"></div>
-  <div class="blur blur2"></div>
-  <div class="blur blur3"></div>
-
-  <div class="chat-container">
-
-    <div class="chat-header">
-
-      <div class="header-left">
-
-        <div class="logo-box"></div>
-
-        <div>
-
-          <h1>CHATFLOW</h1>
-
-          <p>Realtime Neural Interface</p>
-
-        </div>
-
-      </div>
-
-      <div class="online-box">
-
-        <div class="online-dot"></div>
-
-        <span id="online-count">0 Online</span>
-
-      </div>
-
-    </div>
-
-    <div id="message-container" class="message-container"></div>
-
-    <div class="chat-input-container">
-
-      <input
-        type="text"
-        id="message-input"
-        placeholder="Transmit your thoughts..."
-      />
-
-      <button id="send-btn">
-        Send
-      </button>
-
-    </div>
-
+  <!-- Cybernetic Ambient Background -->
+  <div class="space-ambient">
+    <div class="mesh-gradient"></div>
+    <div class="aurora-glow aurora-1"></div>
+    <div class="aurora-glow aurora-2"></div>
+    <div class="aurora-glow aurora-3"></div>
+    <div class="moving-particles" id="particles-container"></div>
   </div>
 
+  <!-- Reconnect / Offline Banner -->
+  <div id="connection-banner" class="status-banner banner-hidden">
+    <div class="banner-content">
+      <span class="banner-spinner"></span>
+      <span id="banner-text">Link Interrupted. Re-establishing neural link...</span>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Authentication Overlay -->
+  <div id="auth-overlay" class="auth-overlay">
+    <div class="auth-card">
+      <div class="auth-card-glow"></div>
+      <div class="auth-header">
+        <div class="auth-logo"></div>
+        <h1>CHATFLOW</h1>
+        <p class="subtitle">Neural Network Protocol</p>
+      </div>
+
+      <!-- Tab Selectors -->
+      <div class="auth-tabs">
+        <button id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
+        <button id="tab-register" class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" class="auth-form" onsubmit="handleAuthSubmit(event, 'login')">
+        <div class="input-group">
+          <label for="login-email">SECURE EMAIL</label>
+          <div class="input-wrapper">
+            <input type="email" id="login-email" required placeholder="name@domain.com" autocomplete="email" />
+            <span class="input-border-glow"></span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label for="login-password">DECRYPT PASS KEY</label>
+          <div class="input-wrapper">
+            <input type="password" id="login-password" required placeholder="••••••••" autocomplete="current-password" />
+            <span class="input-border-glow"></span>
+          </div>
+        </div>
+        <button type="submit" class="cyber-btn btn-primary">
+          <span class="btn-text">INITIALIZE SESSION</span>
+          <span class="btn-glow"></span>
+        </button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="register-form" class="auth-form form-hidden" onsubmit="handleAuthSubmit(event, 'register')">
+        <div class="input-group">
+          <label for="register-name">OPERATOR NAME</label>
+          <div class="input-wrapper">
+            <input type="text" id="register-name" placeholder="Agent Smith" autocomplete="name" />
+            <span class="input-border-glow"></span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label for="register-email">SECURE EMAIL</label>
+          <div class="input-wrapper">
+            <input type="email" id="register-email" placeholder="name@domain.com" autocomplete="email" />
+            <span class="input-border-glow"></span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label for="register-password">GENERATE PASS KEY</label>
+          <div class="input-wrapper">
+            <input type="password" id="register-password" placeholder="Min. 6 characters" autocomplete="new-password" />
+            <span class="input-border-glow"></span>
+          </div>
+        </div>
+        <button type="submit" class="cyber-btn btn-secondary">
+          <span class="btn-text">CREATE IDENTITY</span>
+          <span class="btn-glow"></span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Chat Interface Container (hidden until authenticated) -->
+  <div id="app-container" class="app-container app-hidden">
+    <!-- Header -->
+    <header class="chat-header">
+      <div class="header-left">
+        <div class="logo-box">
+          <div class="logo-inner"></div>
+        </div>
+        <div class="brand-details">
+          <h1>CHATFLOW</h1>
+          <p class="interface-status">Neural Node // Connected</p>
+        </div>
+      </div>
+      
+      <div class="header-right">
+        <!-- Profile summary -->
+        <div class="profile-box">
+          <div class="profile-avatar" id="header-user-avatar">?</div>
+          <div class="profile-info">
+            <span class="profile-name" id="header-user-name">Operator</span>
+            <span class="profile-role">Secure Session</span>
+          </div>
+          <button id="logout-btn" class="logout-btn" title="Terminate Connection" onclick="logout()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="connection-status-box">
+          <div id="status-indicator" class="status-dot dot-online"></div>
+          <span id="online-count">0 Online</span>
+        </div>
+
+        <!-- Sidebar toggle for mobile -->
+        <button id="sidebar-toggle" class="sidebar-toggle" onclick="toggleSidebar()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="workspace">
+      <!-- Sidebar / Active Operators -->
+      <aside id="chat-sidebar" class="chat-sidebar">
+        <div class="sidebar-header">
+          <h3>ACTIVE OPERATORS</h3>
+          <span class="badge" id="sidebar-user-count">0</span>
+        </div>
+        <div class="operators-list" id="operators-list">
+          <!-- Skeletons will appear here initially -->
+          <div class="skeleton-operator">
+            <div class="skeleton-avatar"></div>
+            <div class="skeleton-text">
+              <div class="skeleton-line short"></div>
+              <div class="skeleton-line"></div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Chat Board -->
+      <main class="chat-board">
+        <!-- Message stream -->
+        <div id="message-container" class="message-container">
+          <!-- Skeletons will appear here during loading -->
+          <div class="skeleton-message-left">
+            <div class="skeleton-avatar"></div>
+            <div class="skeleton-bubble"></div>
+          </div>
+          <div class="skeleton-message-right">
+            <div class="skeleton-bubble"></div>
+          </div>
+          
+          <div class="chat-empty-state" id="chat-empty-state">
+            <div class="empty-glow-icon">💬</div>
+            <h3>No neural transmissions yet.</h3>
+            <p>Type your message below to broadcast securely over the sub-space channel.</p>
+          </div>
+        </div>
+
+        <!-- Typing indicators -->
+        <div id="typing-indicator" class="typing-indicator-box"></div>
+
+        <!-- Message Input controls -->
+        <div class="chat-input-area">
+          <div class="input-glow-bg"></div>
+          <div class="input-bar">
+            <input
+              type="text"
+              id="message-input"
+              placeholder="Transmit encrypted package..."
+              autocomplete="off"
+            />
+            <button id="send-btn" class="send-btn" onclick="sendMessage()">
+              <span class="send-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </span>
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Socket.io -->
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-
   <script src="script.js"></script>
-
 </body>
-
 </html>
