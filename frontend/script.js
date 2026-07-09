@@ -1,7 +1,9 @@
 // ==========================================================================
 // CONFIGURATION & GLOBAL STATE
 // ==========================================================================
-const BACKEND_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+const BACKEND_URL = window.location.hostname === "localhost" || 
+                    window.location.hostname === "127.0.0.1" || 
+                    window.location.protocol === "file:"
   ? "http://localhost:5000"
   : "https://chatflow-backend-q1i9.onrender.com";
 
