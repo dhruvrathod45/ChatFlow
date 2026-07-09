@@ -60,13 +60,15 @@ function initBackgroundParticles() {
 function checkSavedSession() {
   const savedUsername = localStorage.getItem("chatflow_username");
   
-  if (savedUsername && savedUsername.trim() !== "") {
+  if (savedUsername && savedUsername.trim() !== "" && savedUsername !== "undefined" && savedUsername !== "null") {
     currentUsername = savedUsername.trim();
     currentUser = {
       id: null,
       name: currentUsername
     };
     initializeInterface();
+  } else {
+    clearSessionData();
   }
 }
 
@@ -86,8 +88,8 @@ function handleJoinSubmit(event) {
   const usernameInput = document.getElementById("join-username");
   const username = usernameInput.value.trim();
   
-  if (username === "") {
-    showToast("Operator callsign cannot be empty.", "error");
+  if (username === "" || username.toLowerCase() === "undefined" || username.toLowerCase() === "null") {
+    showToast("Operator name cannot be empty, 'undefined', or 'null'.", "error");
     return;
   }
 
@@ -106,14 +108,10 @@ function handleJoinSubmit(event) {
 
   showToast("Identity registered. Establishing neural link...", "success");
   
-  // Animate transition and start app
-  authOverlay.style.opacity = "0";
-  setTimeout(() => {
-    authOverlay.classList.add("overlay-hidden");
-    initializeInterface();
-    submitBtn.disabled = false;
-    submitBtn.querySelector('.btn-text').innerText = originalBtnText;
-  }, 400);
+  // Transition immediately and connect socket
+  initializeInterface();
+  submitBtn.disabled = false;
+  submitBtn.querySelector('.btn-text').innerText = originalBtnText;
 }
 
 function logout() {
@@ -158,6 +156,10 @@ function initializeInterface() {
       <div class="skeleton-bubble" style="width:250px;"></div>
     </div>
   `;
+
+  // Disable text input until loaded
+  messageInput.disabled = true;
+  messageInput.placeholder = "Establishing neural link...";
 
   // Start Socket Connection
   connectSocket();
@@ -230,6 +232,11 @@ function connectSocket() {
       messages.forEach(msg => addMessage(msg, false));
       scrollToBottom();
     }
+
+    // Enable inputs for immediate interaction
+    messageInput.disabled = false;
+    messageInput.placeholder = "Type your message to broadcast...";
+    messageInput.focus();
   });
 
   // Incoming new message

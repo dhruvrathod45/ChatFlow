@@ -9,8 +9,8 @@ module.exports = (io) => {
   // Middleware to authenticate Socket.IO connections (Username-based)
   io.use((socket, next) => {
     const username = socket.handshake.auth?.username;
-    if (!username || typeof username !== "string" || username.trim() === "") {
-      return next(new Error("Authentication error: Username is required"));
+    if (!username || typeof username !== "string" || username.trim() === "" || username.toLowerCase() === "undefined" || username.toLowerCase() === "null") {
+      return next(new Error("Authentication error: Valid username is required"));
     }
 
     socket.username = username.trim();
