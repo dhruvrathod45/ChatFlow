@@ -1,4 +1,3 @@
-const jwt = require("jsonwebtoken");
 const Message = require("../models/messageModel");
 
 // Keep track of active sockets
@@ -8,7 +7,8 @@ const activeSockets = new Map();
 module.exports = (io) => {
   // Middleware to authenticate Socket.IO connections (Username-based)
   io.use((socket, next) => {
-    const username = socket.handshake.auth?.username;
+    // Check auth object or query params for username
+    const username = socket.handshake.auth?.username || socket.handshake.query?.username;
     if (!username || typeof username !== "string" || username.trim() === "" || username.toLowerCase() === "undefined" || username.toLowerCase() === "null") {
       return next(new Error("Authentication error: Valid username is required"));
     }
@@ -18,12 +18,7 @@ module.exports = (io) => {
   });
 
   io.on("connection", (socket) => {
-    console.log(`User Connected: ${socket.username} (${socket.id})`);
-
-    // Store in active sockets
-    activeSockets.set(socket.id, {
-      username: socket.username
-    });
+    console.log(`Socket Connected: ${socket.id} (handshake name: ${socket.username})`);
 
     // Helper to get unique list of online users
     const getOnlineUsersList = () => {
@@ -38,14 +33,30 @@ module.exports = (io) => {
       return list;
     };
 
-    // Emit updated online users immediately on connection
-    const onlineList = getOnlineUsersList();
-    io.emit("online-users-list", onlineList);
-    io.emit("online-users", onlineList.length);
-
     // Handle joining the chat room (specifically loading history and showing system alert)
-    socket.on("join-chat", async () => {
+    socket.on("join-chat", async (data) => {
       try {
+        const username = data?.username || socket.username;
+        if (!username || typeof username !== "string" || username.trim() === "" || username.toLowerCase() === "undefined" || username.toLowerCase() === "null") {
+          socket.emit("chat-error", { message: "Invalid username supplied to join." });
+          socket.disconnect();
+          return;
+        }
+
+        socket.username = username.trim();
+
+        // Store in active sockets upon joining
+        activeSockets.set(socket.id, {
+          username: socket.username
+        });
+
+        console.log(`User Joined Chatroom: ${socket.username} (${socket.id})`);
+
+        // Emit updated online count and list to all clients
+        const onlineList = getOnlineUsersList();
+        io.emit("online-users-list", onlineList);
+        io.emit("online-users", onlineList.length);
+
         // Send message history to the newly connected socket
         const messages = await Message.find()
           .sort({ createdAt: -1 })

@@ -8,7 +8,6 @@ const BACKEND_URL = window.location.hostname === "localhost" ||
   : "https://chatflow-backend-q1i9.onrender.com";
 
 let socket = null;
-let currentUser = null;
 let currentUsername = null;
 const typingUsers = new Set();
 let typingTimeout = null;
@@ -62,20 +61,16 @@ function checkSavedSession() {
   
   if (savedUsername && savedUsername.trim() !== "" && savedUsername !== "undefined" && savedUsername !== "null") {
     currentUsername = savedUsername.trim();
-    currentUser = {
-      id: null,
-      name: currentUsername
-    };
     initializeInterface();
   } else {
     clearSessionData();
   }
 }
 
+// Clear all session states
 function clearSessionData() {
   localStorage.removeItem("chatflow_username");
   currentUsername = null;
-  currentUser = null;
 }
 
 // ==========================================================================
@@ -101,10 +96,6 @@ function handleJoinSubmit(event) {
   // Save session
   localStorage.setItem("chatflow_username", username);
   currentUsername = username;
-  currentUser = {
-    id: null,
-    name: currentUsername
-  };
 
   showToast("Identity registered. Establishing neural link...", "success");
   
@@ -134,8 +125,8 @@ function logout() {
 // ==========================================================================
 function initializeInterface() {
   // Update user header profile details
-  headerUserName.innerText = currentUser.name;
-  headerUserAvatar.innerText = getUserInitials(currentUser.name);
+  headerUserName.innerText = currentUsername;
+  headerUserAvatar.innerText = getUserInitials(currentUsername);
 
   // Transition overlay and interface view
   authOverlay.classList.add("overlay-hidden");
@@ -190,13 +181,10 @@ function connectSocket() {
     updateConnectionIndicator("online");
     showToast("Linked to network hub.", "success");
 
-    // Update currentUser ID with socket ID to match sidebar item ids
-    if (currentUser) {
-      currentUser.id = socket.id;
-    }
 
-    // Emit join chat
-    socket.emit("join-chat");
+
+    // Emit join chat with username payload
+    socket.emit("join-chat", { username: currentUsername });
   });
 
   // Socket connection error (auth failed, etc)
@@ -282,7 +270,7 @@ function connectSocket() {
 
 // Add a single message bubble to the board
 function addMessage(data, animate = true) {
-  const isMe = data.username === currentUser.name;
+  const isMe = data.username === currentUsername;
   const isSys = data.isSystem === true || data.username === "System";
 
   if (isSys) {
@@ -321,7 +309,7 @@ function renderOperators(users) {
   
   users.forEach(user => {
     const initials = getUserInitials(user.name);
-    const isMe = user.id === currentUser.id;
+    const isMe = user.name === currentUsername;
 
     const opCard = document.createElement("div");
     opCard.className = `operator-card ${isMe ? 'me' : ''}`;
@@ -387,7 +375,7 @@ function updateTypingIndicator() {
     return;
   }
 
-  const typers = Array.from(typingUsers).filter(name => name !== currentUser.name);
+  const typers = Array.from(typingUsers).filter(name => name !== currentUsername);
   if (typers.length === 0) {
     typingIndicator.style.opacity = "0";
     typingIndicator.innerHTML = "";
