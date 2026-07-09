@@ -296,6 +296,11 @@ function connectSocket() {
     typingUsers.delete(username);
     updateTypingIndicator();
   });
+
+  // Listen for socket validation/authentication errors
+  socket.on("chat-error", (err) => {
+    showToast(err.message, "error");
+  });
 }
 
 // ==========================================================================
