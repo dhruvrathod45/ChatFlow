@@ -181,8 +181,18 @@
     </div>
   </div>
 
-  <!-- Socket.io -->
+  <!-- Socket.io with dynamic backend fallback -->
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script>
+    if (typeof io === 'undefined') {
+      const backendHost = window.location.hostname === "localhost" || 
+                          window.location.hostname === "127.0.0.1" || 
+                          window.location.protocol === "file:"
+        ? "http://localhost:5000"
+        : "https://chatflow-backend-q1i9.onrender.com";
+      document.write('<script src="' + backendHost + '/socket.io/socket.io.js"><\/script>');
+    }
+  </script>
   <script src="script.js"></script>
 </body>
 </html>
