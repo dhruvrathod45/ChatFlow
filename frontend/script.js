@@ -9,7 +9,7 @@ const BACKEND_URL = window.location.hostname === "localhost" ||
 
 let socket = null;
 let currentUser = null;
-let currentToken = null;
+let currentUsername = null;
 const typingUsers = new Set();
 let typingTimeout = null;
 let isTyping = false;
@@ -17,10 +17,7 @@ let isTyping = false;
 // DOM Elements
 const authOverlay = document.getElementById("auth-overlay");
 const appContainer = document.getElementById("app-container");
-const loginForm = document.getElementById("login-form");
-const registerForm = document.getElementById("register-form");
-const tabLogin = document.getElementById("tab-login");
-const tabRegister = document.getElementById("tab-register");
+const joinForm = document.getElementById("join-form");
 
 const messageContainer = document.getElementById("message-container");
 const messageInput = document.getElementById("message-input");
@@ -59,100 +56,64 @@ function initBackgroundParticles() {
   }
 }
 
-// Auto-restore session if token is saved
+// Auto-restore session if username is saved
 function checkSavedSession() {
-  const savedToken = localStorage.getItem("chatflow_token");
-  const savedUser = localStorage.getItem("chatflow_user");
+  const savedUsername = localStorage.getItem("chatflow_username");
   
-  if (savedToken && savedUser) {
-    try {
-      currentToken = savedToken;
-      currentUser = JSON.parse(savedUser);
-      initializeInterface();
-    } catch (e) {
-      clearSessionData();
-    }
+  if (savedUsername && savedUsername.trim() !== "") {
+    currentUsername = savedUsername.trim();
+    currentUser = {
+      id: null,
+      name: currentUsername
+    };
+    initializeInterface();
   }
 }
 
 function clearSessionData() {
-  localStorage.removeItem("chatflow_token");
-  localStorage.removeItem("chatflow_user");
-  currentToken = null;
+  localStorage.removeItem("chatflow_username");
+  currentUsername = null;
   currentUser = null;
 }
 
 // ==========================================================================
-// AUTHENTICATION ROUTINES (LOGIN / REGISTER)
 // ==========================================================================
-function switchAuthTab(tab) {
-  if (tab === "login") {
-    tabLogin.classList.add("active");
-    tabRegister.classList.remove("active");
-    loginForm.classList.remove("form-hidden");
-    registerForm.classList.add("form-hidden");
-  } else {
-    tabLogin.classList.remove("active");
-    tabRegister.classList.add("active");
-    loginForm.classList.add("form-hidden");
-    registerForm.classList.remove("form-hidden");
-  }
-}
-
-async function handleAuthSubmit(event, action) {
+// AUTHENTICATION ROUTINES (JOIN CHAT)
+// ==========================================================================
+function handleJoinSubmit(event) {
   event.preventDefault();
   
+  const usernameInput = document.getElementById("join-username");
+  const username = usernameInput.value.trim();
+  
+  if (username === "") {
+    showToast("Operator callsign cannot be empty.", "error");
+    return;
+  }
+
   const submitBtn = event.target.querySelector('button[type="submit"]');
   const originalBtnText = submitBtn.querySelector('.btn-text').innerText;
   submitBtn.disabled = true;
   submitBtn.querySelector('.btn-text').innerText = "CONNECTING...";
 
-  const endpoint = action === "login" ? "/api/auth/login" : "/api/auth/register";
-  const bodyData = {};
+  // Save session
+  localStorage.setItem("chatflow_username", username);
+  currentUsername = username;
+  currentUser = {
+    id: null,
+    name: currentUsername
+  };
+
+  showToast("Identity registered. Establishing neural link...", "success");
   
-  if (action === "login") {
-    bodyData.email = document.getElementById("login-email").value;
-    bodyData.password = document.getElementById("login-password").value;
-  } else {
-    bodyData.name = document.getElementById("register-name").value;
-    bodyData.email = document.getElementById("register-email").value;
-    bodyData.password = document.getElementById("register-password").value;
-  }
-
-  try {
-    const response = await fetch(`${BACKEND_URL}${endpoint}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(bodyData)
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Authentication transmission failed.");
-    }
-
-    // Save session
-    localStorage.setItem("chatflow_token", data.token);
-    localStorage.setItem("chatflow_user", JSON.stringify(data.user));
-    currentToken = data.token;
-    currentUser = data.user;
-
-    showToast(data.message || "Identity confirmed. Neural link established.", "success");
-    
-    // Animate transition and start app
-    authOverlay.style.opacity = "0";
-    setTimeout(() => {
-      authOverlay.classList.add("overlay-hidden");
-      initializeInterface();
-    }, 400);
-
-  } catch (error) {
-    showToast(error.message, "error");
-  } finally {
+  // Animate transition and start app
+  authOverlay.style.opacity = "0";
+  setTimeout(() => {
+    authOverlay.classList.add("overlay-hidden");
+    initializeInterface();
     submitBtn.disabled = false;
     submitBtn.querySelector('.btn-text').innerText = originalBtnText;
-  }
+  }, 400);
 }
 
 function logout() {
@@ -166,8 +127,7 @@ function logout() {
   setTimeout(() => {
     authOverlay.style.opacity = "1";
     // Clear form fields
-    loginForm.reset();
-    registerForm.reset();
+    joinForm.reset();
   }, 100);
 }
 
@@ -215,7 +175,7 @@ function getUserInitials(name) {
 // ==========================================================================
 function connectSocket() {
   socket = io(BACKEND_URL, {
-    auth: { token: currentToken },
+    auth: { username: currentUsername },
     reconnection: true,
     reconnectionAttempts: 10,
     reconnectionDelay: 2000,
@@ -228,6 +188,11 @@ function connectSocket() {
     updateConnectionIndicator("online");
     showToast("Linked to network hub.", "success");
 
+    // Update currentUser ID with socket ID to match sidebar item ids
+    if (currentUser) {
+      currentUser.id = socket.id;
+    }
+
     // Emit join chat
     socket.emit("join-chat");
   });
@@ -236,7 +201,7 @@ function connectSocket() {
   socket.on("connect_error", (error) => {
     console.error("Socket Connection Error:", error.message);
     if (error.message.includes("Authentication error")) {
-      showToast("Access token validation failed. Please re-authenticate.", "error");
+      showToast(error.message, "error");
       logout();
     } else {
       showConnectionBanner("Host offline. Re-establishing link...");
@@ -248,7 +213,6 @@ function connectSocket() {
   socket.on("disconnect", (reason) => {
     updateConnectionIndicator("offline");
     if (reason === "io server disconnect") {
-      // Server kicked connection (likely expired token)
       logout();
     } else {
       showConnectionBanner("Neural link lost. Re-establishing link...");

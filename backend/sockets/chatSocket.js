@@ -1,49 +1,28 @@
 const jwt = require("jsonwebtoken");
 const Message = require("../models/messageModel");
-const User = require("../models/user");
 
 // Keep track of active sockets
-// Map: socket.id -> { userId, name, email }
+// Map: socket.id -> { username }
 const activeSockets = new Map();
 
 module.exports = (io) => {
-  // Middleware to authenticate Socket.IO connections
-  io.use(async (socket, next) => {
-    const token = socket.handshake.auth?.token || socket.handshake.headers['authorization'];
-    if (!token) {
-      return next(new Error("Authentication error: No token provided"));
+  // Middleware to authenticate Socket.IO connections (Username-based)
+  io.use((socket, next) => {
+    const username = socket.handshake.auth?.username;
+    if (!username || typeof username !== "string" || username.trim() === "") {
+      return next(new Error("Authentication error: Username is required"));
     }
 
-    try {
-      const cleanToken = token.replace("Bearer ", "");
-      const decoded = jwt.verify(cleanToken, process.env.JWT_SECRET);
-      
-      // Fetch user from DB to ensure validity and get name/email if not in token
-      const dbUser = await User.findById(decoded.id);
-      if (!dbUser) {
-        return next(new Error("Authentication error: User not found in database"));
-      }
-
-      socket.user = {
-        id: dbUser._id.toString(),
-        name: dbUser.name,
-        email: dbUser.email
-      };
-      
-      next();
-    } catch (err) {
-      return next(new Error("Authentication error: Invalid token"));
-    }
+    socket.username = username.trim();
+    next();
   });
 
   io.on("connection", (socket) => {
-    console.log(`User Connected: ${socket.user.name} (${socket.user.id})`);
+    console.log(`User Connected: ${socket.username} (${socket.id})`);
 
     // Store in active sockets
     activeSockets.set(socket.id, {
-      userId: socket.user.id,
-      name: socket.user.name,
-      email: socket.user.email
+      username: socket.username
     });
 
     // Helper to get unique list of online users
@@ -51,9 +30,9 @@ module.exports = (io) => {
       const list = [];
       const seen = new Set();
       for (const [sid, user] of activeSockets.entries()) {
-        if (!seen.has(user.userId)) {
-          seen.add(user.userId);
-          list.push({ id: user.userId, name: user.name, email: user.email });
+        if (!seen.has(user.username)) {
+          seen.add(user.username);
+          list.push({ id: sid, name: user.username });
         }
       }
       return list;
@@ -77,7 +56,7 @@ module.exports = (io) => {
         // Broadcast system message that user joined
         socket.broadcast.emit("receive-message", {
           username: "System",
-          message: `${socket.user.name} joined the chat`,
+          message: `${socket.username} joined the chat`,
           isSystem: true,
           time: new Date().toLocaleTimeString([], {
             hour: "2-digit",
@@ -109,15 +88,15 @@ module.exports = (io) => {
           return;
         }
 
-        // 2. Security validation: check if authenticated user details exist on socket
-        if (!socket.user || !socket.user.name) {
-          socket.emit("chat-error", { message: "Authentication identity missing. Please reconnect." });
+        // 2. Security validation: check if username exists on socket
+        if (!socket.username) {
+          socket.emit("chat-error", { message: "Identity missing. Please reconnect." });
           return;
         }
 
         // 3. Construct and save the message
         const newMessage = new Message({
-          username: socket.user.name,
+          username: socket.username,
           message: messageContent.trim(),
           time: new Date().toLocaleTimeString([], {
             hour: "2-digit",
@@ -142,12 +121,12 @@ module.exports = (io) => {
 
     // Handle typing indicator
     socket.on("typing", () => {
-      socket.broadcast.emit("typing", socket.user.name);
+      socket.broadcast.emit("typing", socket.username);
     });
 
     // Handle stop typing indicator
     socket.on("stop-typing", () => {
-      socket.broadcast.emit("stop-typing", socket.user.name);
+      socket.broadcast.emit("stop-typing", socket.username);
     });
 
     // Handle disconnect
@@ -155,7 +134,7 @@ module.exports = (io) => {
       const user = activeSockets.get(socket.id);
       if (user) {
         activeSockets.delete(socket.id);
-        console.log(`User Disconnected: ${user.name}`);
+        console.log(`User Disconnected: ${user.username}`);
 
         const updatedOnlineList = getOnlineUsersList();
         io.emit("online-users-list", updatedOnlineList);
@@ -164,7 +143,7 @@ module.exports = (io) => {
         // Broadcast system message that user left
         socket.broadcast.emit("receive-message", {
           username: "System",
-          message: `${user.name} left the chat`,
+          message: `${user.username} left the chat`,
           isSystem: true,
           time: new Date().toLocaleTimeString([], {
             hour: "2-digit",

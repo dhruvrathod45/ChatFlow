@@ -50,59 +50,17 @@
         <p class="subtitle">Neural Network Protocol</p>
       </div>
 
-      <!-- Tab Selectors -->
-      <div class="auth-tabs">
-        <button id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
-        <button id="tab-register" class="auth-tab" onclick="switchAuthTab('register')">Register</button>
-      </div>
-
-      <!-- Login Form -->
-      <form id="login-form" class="auth-form" onsubmit="handleAuthSubmit(event, 'login')">
+      <!-- Join Form -->
+      <form id="join-form" class="auth-form" onsubmit="handleJoinSubmit(event)">
         <div class="input-group">
-          <label for="login-email">SECURE EMAIL</label>
+          <label for="join-username">OPERATOR CALLSIGN / NAME</label>
           <div class="input-wrapper">
-            <input type="email" id="login-email" required placeholder="name@domain.com" autocomplete="email" />
-            <span class="input-border-glow"></span>
-          </div>
-        </div>
-        <div class="input-group">
-          <label for="login-password">DECRYPT PASS KEY</label>
-          <div class="input-wrapper">
-            <input type="password" id="login-password" required placeholder="••••••••" autocomplete="current-password" />
+            <input type="text" id="join-username" required placeholder="Neo" autocomplete="username" />
             <span class="input-border-glow"></span>
           </div>
         </div>
         <button type="submit" class="cyber-btn btn-primary">
-          <span class="btn-text">INITIALIZE SESSION</span>
-          <span class="btn-glow"></span>
-        </button>
-      </form>
-
-      <!-- Register Form -->
-      <form id="register-form" class="auth-form form-hidden" onsubmit="handleAuthSubmit(event, 'register')">
-        <div class="input-group">
-          <label for="register-name">OPERATOR NAME</label>
-          <div class="input-wrapper">
-            <input type="text" id="register-name" placeholder="Agent Smith" autocomplete="name" />
-            <span class="input-border-glow"></span>
-          </div>
-        </div>
-        <div class="input-group">
-          <label for="register-email">SECURE EMAIL</label>
-          <div class="input-wrapper">
-            <input type="email" id="register-email" placeholder="name@domain.com" autocomplete="email" />
-            <span class="input-border-glow"></span>
-          </div>
-        </div>
-        <div class="input-group">
-          <label for="register-password">GENERATE PASS KEY</label>
-          <div class="input-wrapper">
-            <input type="password" id="register-password" placeholder="Min. 6 characters" autocomplete="new-password" />
-            <span class="input-border-glow"></span>
-          </div>
-        </div>
-        <button type="submit" class="cyber-btn btn-secondary">
-          <span class="btn-text">CREATE IDENTITY</span>
+          <span class="btn-text">ENTER CHATROOM</span>
           <span class="btn-glow"></span>
         </button>
       </form>

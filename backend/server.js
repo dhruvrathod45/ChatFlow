@@ -11,7 +11,6 @@ const { Server } = require("socket.io");
 dotenv.config();
 
 const connectDB = require("./config/db");
-const authRoutes = require("./routes/authRoutes");
 const chatSocket = require("./sockets/chatSocket");
 
 // Express App
@@ -50,16 +49,6 @@ app.use(
 );
 app.use(customMongoSanitize);
 
-// Rate Limiter to prevent auth API abuse
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 auth requests per windowMs
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { message: "Too many attempts, please try again after 15 minutes." }
-});
-app.use("/api/auth", authLimiter);
-
 // CORS configuration
 app.use(
   cors({
@@ -73,9 +62,6 @@ app.use(express.json());
 
 // Serve static frontend files (ideal for local testing and direct backend access)
 app.use(express.static(path.join(__dirname, "../frontend")));
-
-// Routes
-app.use("/api/auth", authRoutes);
 
 // Fallback index.html serve for SPA routing
 app.use((req, res, next) => {
